@@ -33,19 +33,19 @@ export const SIDEBAR_NAV: Record<string, NavGroup[]> = {
   USER: [
     {
       items: [
-        { label: 'Home',       to: '/',          icon: icons.home,     end: true },
+        { label: 'Home',       to: '/home',      icon: icons.home,     end: true },
         { label: 'Shop',       to: '/products',  icon: icons.shop },
-        { label: 'My Orders',  to: '/orders',    icon: icons.orders },
-        { label: 'Wishlist',   to: '/wishlist',  icon: icons.wishlist },
-        { label: 'Addresses',  to: '/addresses', icon: icons.address },
-        { label: 'Wallet',     to: '/wallet',    icon: icons.wallet },
+        { label: 'My Orders',  to: '/account/orders',    icon: icons.orders },
+        { label: 'Wishlist',   to: '/account/wishlist',  icon: icons.wishlist },
+        { label: 'Addresses',  to: '/account/addresses', icon: icons.address },
+        { label: 'Wallet',     to: '/account/wallet',    icon: icons.wallet },
       ],
     },
     {
       heading: 'Account',
       items: [
-        { label: 'Profile',    to: '/profile',   icon: icons.profile },
-        { label: 'Settings',   to: '/settings',  icon: icons.settings },
+        { label: 'Profile',    to: '/account/profile',   icon: icons.profile },
+        { label: 'Settings',   to: '/account/settings',  icon: icons.settings },
       ],
     },
   ],
@@ -78,6 +78,7 @@ export const SIDEBAR_NAV: Record<string, NavGroup[]> = {
         { label: 'Categories', to: '/admin/categories',   icon: icons.categories },
         { label: 'Analytics',  to: '/admin/analytics',    icon: icons.analytics },
         { label: 'Audit Logs', to: '/admin/audit',        icon: icons.audit },
+        { label: 'Sellers',    to: '/admin/sellers',      icon: icons.users },
       ],
     },
     {

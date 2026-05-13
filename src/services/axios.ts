@@ -19,16 +19,23 @@ api.interceptors.response.use(
     const original = err.config;
     if (err.response?.status === 401 && !original._retry) {
       original._retry = true;
-      try {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'}/auth/refresh`,
-          {},
-          { withCredentials: true },
-        );
-        localStorage.setItem('accessToken', data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(original);
-      } catch {
+      const storedRefresh = localStorage.getItem('refreshToken');
+      if (storedRefresh) {
+        try {
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'}/auth/refresh-token`,
+            { refreshToken: storedRefresh },
+            { withCredentials: true },
+          );
+          localStorage.setItem('accessToken', data.accessToken);
+          original.headers.Authorization = `Bearer ${data.accessToken}`;
+          return api(original);
+        } catch {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login';
+        }
+      } else {
         localStorage.removeItem('accessToken');
         window.location.href = '/login';
       }

@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useClerk, useUser } from '@clerk/react';
+import { useAuth, useClerk, useUser } from '@clerk/react';
 import { useAppDispatch } from '../../app/hooks';
 import { setCredentials } from '../../features/auth/authSlice';
 import { toast } from '../../components/ui/Toast';
+import api from '../../services/axios';
 
 export default function SSOCallbackPage() {
   const dispatch          = useAppDispatch();
   const navigate          = useNavigate();
   const clerk             = useClerk();
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
 
   // Step 1: Let Clerk complete the OAuth handshake
   useEffect(() => {
@@ -38,24 +40,30 @@ export default function SSOCallbackPage() {
          *   dispatch(setCredentials({ user: result.user, accessToken: result.accessToken }))
          */
 
-        // Temporary: build user from Clerk session until backend endpoint exists
-        const clerkUser = user!;
+        // Exchange Clerk token to backend tokens (requires /api/auth/clerk on backend)
+        const clerkToken = await getToken();
+        if (!clerkToken) throw new Error('Missing Clerk session token');
+        const { data } = await api.post('/auth/clerk', { clerkToken });
+
         if (!cancelled) {
-          dispatch(setCredentials({
-            user: {
-              _id:   clerkUser.id,
-              name:  clerkUser.fullName ?? clerkUser.firstName ?? 'User',
-              email: clerkUser.primaryEmailAddress?.emailAddress ?? '',
-              role:  'USER',
-            },
-            accessToken: '',
-          }));
-          toast.success('Signed in!', `Welcome, ${clerkUser.fullName ?? 'User'}`);
+          dispatch(
+            setCredentials({
+              user: data.user,
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+            }),
+          );
+          toast.success('Signed in!', `Welcome, ${data.user?.name ?? 'User'}`);
           navigate('/', { replace: true });
         }
-      } catch {
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('OAuth callback error:', err);
         if (!cancelled) {
-          toast.error('Sign-in failed', 'Could not complete OAuth. Please try again.');
+          toast.error(
+            'Sign-in failed',
+            'OAuth completed, but backend token exchange failed. Check CLERK_SECRET_KEY/CLERK_JWT_KEY and /api/auth/clerk.',
+          );
           navigate('/login', { replace: true });
         }
       }

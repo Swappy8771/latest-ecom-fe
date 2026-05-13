@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logout } from '../../features/auth/authSlice';
+import { useLogoutMutation } from '../../services/authApi';
 import { toast } from '../ui/Toast';
 import { SIDEBAR_NAV, type NavItem, type NavGroup } from './sidebarConfig';
 
@@ -90,13 +91,18 @@ function SidebarGroup({ group, collapsed, onLinkClick }: { group: NavGroup; coll
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMobileClose }: SidebarProps) {
-  const dispatch = useAppDispatch();
-  const user     = useAppSelector((s) => s.auth.user);
+  const dispatch     = useAppDispatch();
+  const user         = useAppSelector((s) => s.auth.user);
+  const refreshToken = useAppSelector((s) => s.auth.refreshToken);
+  const [logoutApi]  = useLogoutMutation();
 
   const role   = user?.role ?? 'USER';
   const groups: NavGroup[] = SIDEBAR_NAV[role] ?? SIDEBAR_NAV.USER;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (refreshToken) {
+      try { await logoutApi({ refreshToken }).unwrap(); } catch { /* ignore — still clear local state */ }
+    }
     dispatch(logout());
     toast.success('Signed out successfully');
     onMobileClose();

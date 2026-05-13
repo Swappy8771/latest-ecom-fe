@@ -684,7 +684,7 @@ export default function LandingPage() {
         <TestimonialsSection />
         <NewsletterSection />
       </main>
-      <Footer role="guest" />
+      <Footer />
     </div>
   );
 }
